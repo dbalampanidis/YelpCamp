@@ -5,25 +5,16 @@ const catchAsync = require('../utils/catchAsync');
 const User = require('../models/user');
 const passport = require('passport');
 
-router.get('/register', users.renderRegister);
 
-router.post('/register', catchAsync(users.register));
+router.route('/register')
+    .get(users.renderRegister)
+    .post(catchAsync(users.register));
 
-router.get('/login', users.renderLogin);
+router.route('/login')
+    .get(users.renderLogin)
+    .post(passport.authenticate('local', { failureFlash: true, failureRedirect: '/login', keepSessionInfo: true }), users.login);
 
-router.post('/login', passport.authenticate('local', { failureFlash: true, failureRedirect: '/login', keepSessionInfo: true }), (req, res) => {
-    req.flash('success', 'Welcome back!');
-    const redirectUrl = req.session.returnTo || '/campgrounds';
-    delete req.session.returnTo;
-    res.redirect(redirectUrl);
-});
 
-router.get('/logout', (req, res, next) => {
-    req.logout(function (err) {
-        if (err) { return next(err); }
-        req.flash('success', "Goodbye!");
-        res.redirect('/campgrounds');
-    });
-});
+router.get('/logout', users.logout);
 
 module.exports = router;
